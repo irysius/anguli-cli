@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+'use strict';
+
+var command = (process.argv[2] || '').toLowerCase();
+var packageJson = require('./../package.json');
+var indent = '    ';
+var indent2 = indent + indent;
+var context = {
+	cwd: process.cwd()
+};
+
+switch (command) {
+	case 'setup':
+		require('./setup')(context);
+		break;
+	case 'controller':
+		require('./controller')(context);
+		break;
+	case 'hub':
+		require('./hub')(context);
+		break;
+	case 'model':
+		require('./model')(context);
+		break;
+	case 'version':
+		version();
+		break;
+	case 'help':
+	default:
+		help();
+		break;
+}
+
+function version() {
+	console.log(packageJson.version);
+}
+
+function help() {
+	console.log('anguli web framework, version ' + packageJson.version);
+	console.log('Usage:');
+	console.log(indent + 'anguli setup');
+	console.log(indent + 'anguli controller');
+	console.log(indent + 'anguli hub');
+	console.log(indent + 'anguli model');
+	console.log(indent + 'anguli version');
+	console.log(indent + 'anguli help');
+}
+// console.log(process.argv.length);
+// console.log(process.argv[2]);

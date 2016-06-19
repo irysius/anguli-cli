@@ -1,0 +1,32 @@
+{
+	"description": "config",
+	"type": "object",
+	"properties": {
+		"cors": {
+			"type": "object"	
+		},
+		"waterline": {
+			"type": "object",
+			"properties": {
+				"adapters": { "type": "object" },
+				"connections": { "type": "object" },
+				"defaults": { "type": "object" }
+			}
+		},
+		"rabbitMQ": {
+			"type": "object",
+			"properties": {
+				"username": { "type": "string" },
+				"password": { "type": "string" },
+				"hostname": { "type": "string" }
+			}
+		},
+		"channels": {
+			"type": "object",
+			"properties": {
+				"incoming": { "type": "string" },
+				"outgoing": { "type": "string" }
+			}
+		}
+	}
+}
