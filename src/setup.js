@@ -1,5 +1,9 @@
+var _ = require('lodash');
 var inquirer = require('inquirer');
 var h = require('./helpers');
+var fs = require('@irysius/utils').fs;
+var PATH = require('path');
+var dependency = require('./dependency');
 
 var invalidDirectory = 'anguli setup is expected to run in the root of a node project. Please re-run the command in a directory with a package.json.';
 var existingInstallation = {
@@ -32,13 +36,17 @@ var optionIdentity = {
 var setupComplete = 'anguli setup has completed installing project files. Please run npm install to finish installing external dependencies.';
 
 var dependencies = [
-	{ package: '@irysius/anguli-components', version: '0.1.x' }	
+	{ package: '@irysius/utils', version: '0.1.x' },
+	{ package: '@irysius/anguli-components', version: '0.1.x' },
+	{ package: '@irysius/schema-service', version: '0.1.x' },
+	{ package: '@irysius/config-manager', version: '0.1.x' },
+	{ package: '@irysius/file-config-service', version: '0.1.x' },
 ];
 
 var utilityDependencies = [
-	{ package: 'lodash', version: '' },
-	{ package: 'moment', version: '' },
-	{ package: 'chance', version: '' }	
+	{ package: 'lodash', version: '4.13.x' },
+	{ package: 'moment', version: '2.13.x' },
+	{ package: 'chance', version: '1.0.x' }	
 ];
 
 var baseDependencies = [
@@ -53,6 +61,50 @@ var baseDependencies = [
 	{ package: 'ejs', version: '2.4.1' }
 ];
 
+function templateFile(filename) {
+	return PATH.resolve(__dirname, './../templates', filename);
+}
+
+function writeMain(context) {
+	var targetFile = PATH.resolve(context.cwd, 'src', 'main.js'); 
+	return fs.stat(targetFile).then(stat => {
+		if (!stat) {
+			return fs.copyFile(templateFile('main.js.ejs'), targetFile);
+		}
+	});	
+}
+
+function writeServer(context) {
+	var targetFile = PATH.resolve(context.cwd, 'src', 'server.js');
+	return fs.stat(targetFile).then(stat => {
+		if (!stat) {
+			return fs.readFile(templateFile('server.js.ejs')).then(data => {
+				return fs.writeFile(targetFile, _.template(data)(context));
+			});
+		}
+	});
+}
+
+function writeContext(context) {
+	var targetFile = PATH.resolve(context.cwd, 'src', 'context.js');
+	return fs.stat(targetFile).then(stat => {
+		if (!stat) {
+			return fs.readFile(templateFile('context.js.ejs')).then(data => {
+				return fs.writeFile(targetFile, _.template(data)(context));
+			});
+		}
+	});
+}
+
+function writeConfig(context) {
+	var targetFile = PATH.resolve(context.cwd, 'config.json');
+	return fs.stat(targetFile).then(stat => {
+		if (!stat) {
+			return fs.copyFile(templateFile('config.json'), targetFile);
+		}
+	});
+}
+
 function setup(context) {
 	// Begin main logic
 	return h.isNodeApplication(context.cwd).then(yes => {
@@ -63,7 +115,7 @@ function setup(context) {
 		return h.hasExistingInstall(context.cwd);
 	}).then(yes => {
 		if (yes) { 
-			return inquirer.prompt([hasExistingInstall]).then(({ proceed }) => {
+			return inquirer.prompt([existingInstallation]).then(({ proceed }) => {
 				if (!proceed) { throw new Error(); }
 			});
 		}
@@ -72,12 +124,28 @@ function setup(context) {
 		console.log('Setting up the anguli framework...');
 		return inquirer.prompt(options).then(({hubs, sessions, identities, models}) => {
 			// Do stuff
-			console.log(hubs);
-			console.log(sessions);
-			console.log(identities);
-			console.log(models);
+			var base = {
+				needsHub: hubs,
+				needsSession: sessions,
+				needsIdentity: identities,
+				needsModel: models
+			};
+
+			if (hubs) { dependencies.push({ package: 'socket.io', version: '1.4.6' }); }
+			if (models) { dependencies.push({ package: 'waterline', version: '0.1.4' }); }
+			var renderContext = _.merge(base, context);
+
+			return Promise.all([
+				writeMain(renderContext),
+				writeServer(renderContext),
+				writeContext(renderContext),
+				writeConfig(renderContext)
+			]);
+		}).then(() => {
+			var packageJson = PATH.resolve(context.cwd, 'package.json');
+			dependency.assert(packageJson, baseDependencies);
 		});
-	}).catch(() => {});
+	}).catch(e => { console.log(e.stack); console.log(e.message) });
 	
 }
 

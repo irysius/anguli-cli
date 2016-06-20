@@ -1,8 +1,11 @@
+var PATH = require('path');
+var Logger = require('@irysius/utils').Logger;
+
 var initializers = [];
 var context = {
 	initialize: function () {
 		var promise = Promise.resolve();
-		// Initializer order matters
+		// Note: Initializer order matters
 		initializers.forEach(initializer => {
 			promise = promise.then(initializer);
 		});
@@ -10,13 +13,13 @@ var context = {
 	}
 };
 
-// TODO: Make sure all libraries that console log takes a logger
 // Schema
 var SchemaService = require('@irysius/schema-service');
+var schemaService = SchemaService({ logger: Logger.consoleLogger() });
 var schemas;
 
 function initializeSchema() {
-	return SchemaService.initialize(
+	return schemaService.initialize(
 		PATH.join(__dirname, 'api', 'schemas')).then(_schemas => {
 			schemas = _schemas;
 		});
@@ -32,7 +35,8 @@ Object.defineProperty(context, 'Schemas', {
 
 // Configuration
 var ConfigManager = require('@irysius/config-manager');
-var configManager = ConfigManager({});
+var baseConfiguration = {};
+var configManager = ConfigManager(baseConfiguration);
 var configuration;
 
 var FileConfigService = require('@irysius/file-config-service');
@@ -59,10 +63,14 @@ Object.defineProperty(context, 'Configuration', {
 	}
 });
 
+<% if (needsModel) { %>
 // Model
 var Modeller = require('@irysius/anguli-components').Modeller;
 var Waterline = require('waterline');
-var modeller = new Modeller({ Waterline: Waterline });
+var modeller = new Modeller({ 
+	Waterline: Waterline,
+	logger: Logger.consoleLogger() 
+});
 var models;
 
 function initializeModels() {
@@ -80,5 +88,6 @@ Object.defineProperty(context, 'Models', {
 		return models;
 	}
 });
+<% } %>
 
 module.exports = context;

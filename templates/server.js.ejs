@@ -5,6 +5,7 @@ var http = require('http');
 var express = require('express');
 var context = require('./context');
 var config = context.Configuration;
+var Logger = require('@irysius/utils').Logger;
 
 // Connect/Express middleware
 var body_parser = require('body-parser');
@@ -33,17 +34,26 @@ app.set('view engine', 'ejs');
 // CORS
 !!config.cors ? app.use(cors(config.cors)) : app.use(cors());
 
+<% if (needsSession) { %>
 // Session
-// var Session = require('./api/framework/Session');
-// var session = Session.create();
-// app.use(session);
-// var Identity = require('./api/framework/Identity');
-// var identity = Identity.create(); 
-// app.use(identity);
+var SessionFactory = require('@irysius/anguli-components').SessionFactory;
+var session = SessionFactory.create();
+app.use(session);
+<% } %>
+<% if (needsIdentity) { %>
+var Identity = require('@irysius/anguli-components').IdentityFactory;
+var identity = IdentityFactory.create({
+	userLocator: null // TODO: Implement me
+});
+app.use(identity);
+<% } %>
 
 // Routes
 var ControllerRouter = require('@irysius/anguli-components').ControllerRouter;
-var controllerRouter = ControllerRouter({ express: express });
+var controllerRouter = ControllerRouter({ 
+	express: express, 
+	logger: Logger.consoleLogger() 
+});
 controllerRouter.setup(app, __dirname + '/api');
 
 // Rest of the routes
@@ -54,15 +64,30 @@ app.use(errorhandler({ dumpExceptions: true, showStack: true }));
 
 // Start the server
 var httpServer = http.createServer(app);
-httpServer.on('listening', function () {
+httpServer.on('listening', () => {
 	console.log('server listening on port: ' + httpServer.address().port);
 });
 
+<% if (needsHub) { %>
 // Socket Endpoints
-// var io = require('socket.io')(httpServer);
-// var hubRouter = require('./api/framework/HubRouter');
-// hubRouter.filter(io);
-// hubRouter.setup(io, __dirname + '/api');
+var io = require('socket.io')(httpServer);
+var HubRouter = require('@irysius/anguli-components').HubRouter;
+var hubRouter = HubRouter({ 
+	io: io, 
+	logger: Logger.consoleLogger() 
+});
+hubRouter.setup(__dirname + '/api');s
+<% } %>
+<% if (needsHub && needsSession) { %>
+io.use((socket, next) => {
+	session(socket.request, socket.request.res, next);
+});
+<% } %>
+<% if (needsHub && needsIdentity) { %>
+io.use((socket, next) => {
+	identity(socket.request, socket.request.res, next);
+});
+<% } %>
 
 httpServer.listen(settings.port);
 

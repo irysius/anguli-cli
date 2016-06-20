@@ -7,10 +7,14 @@ function isNodeApplication(cwd) {
 	});
 }
 function hasExistingInstall(cwd) {
+	// The only files we're checking as proof of installation
 	var telltaleFiles = ['main.js', 'server.js', 'context.js'];
-	return fs.listFiles(PATH.resolve(cwd, 'src')).then(files => {
-		var fileNames = files.filter(file => PATH.basename(file).toLowerCase());
-		return fileNames.some(fileName => telltaleFiles.indexOf(fileName) !== -1);
+	var fileExistPromises = telltaleFiles
+		.map(f => PATH.resolve(cwd, 'src', f))
+		.map(f => fs.stat(f));
+	
+	return Promise.all(fileExistPromises).then(stats => {
+		return stats.every(stat => !!stat);
 	});
 }
 
