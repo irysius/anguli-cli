@@ -12,7 +12,7 @@ context.initialize().then(() => {
 		console.error('Unhandled error occurred in the application');
 		console.error(e.message);
 	}
-}).catch(() => {
+}).catch((e) => {
 	console.error('Error occurred initializing context objects.');
 	console.error(e.message);
 });

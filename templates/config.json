@@ -2,6 +2,9 @@
 	"description": "config",
 	"type": "object",
 	"properties": {
+		"port": {
+			"type": "number"
+		},
 		"cors": {
 			"type": "object"	
 		},

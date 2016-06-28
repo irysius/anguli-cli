@@ -47,3 +47,11 @@ function help() {
 }
 // console.log(process.argv.length);
 // console.log(process.argv[2]);
+process.on('uncaughtException', function (err) {
+	console.log('uncaughtException');
+	console.log(err);
+});
+process.on('unhandledRejection', function (reason, p) {
+	console.log('unhandledRejection');
+	console.log(reason);
+});

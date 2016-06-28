@@ -41,7 +41,7 @@ var session = SessionFactory.create();
 app.use(session);
 <% } %>
 <% if (needsIdentity) { %>
-var Identity = require('@irysius/anguli-components').IdentityFactory;
+var IdentityFactory = require('@irysius/anguli-components').IdentityFactory;
 var identity = IdentityFactory.create({
 	userLocator: null // TODO: Implement me
 });
@@ -52,7 +52,7 @@ app.use(identity);
 var ControllerRouter = require('@irysius/anguli-components').ControllerRouter;
 var controllerRouter = ControllerRouter({ 
 	express: express, 
-	logger: Logger.consoleLogger() 
+	logger: Logger.console() 
 });
 controllerRouter.setup(app, __dirname + '/api');
 
@@ -74,7 +74,7 @@ var io = require('socket.io')(httpServer);
 var HubRouter = require('@irysius/anguli-components').HubRouter;
 var hubRouter = HubRouter({ 
 	io: io, 
-	logger: Logger.consoleLogger() 
+	logger: Logger.console() 
 });
 hubRouter.setup(__dirname + '/api');s
 <% } %>
@@ -89,5 +89,5 @@ io.use((socket, next) => {
 });
 <% } %>
 
-httpServer.listen(settings.port);
+httpServer.listen(config.port || 3000);
 

@@ -18,7 +18,7 @@
   "author": "Lester Sy (https://lestersy.io)",
   "license": "MIT",
   "dependencies": {
-    "@irysius/utils": "^0.1.1",
+    "@irysius/utils": "0.1.x",
     "connect-redis": "3.0.2",
     "express-session": "1.13.0",
     "inquirer": "^1.0.2",

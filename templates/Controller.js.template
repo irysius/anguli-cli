@@ -1,0 +1,7 @@
+var <%= controller %>Controller = {
+	index: (req, res) => {
+		res.view('<%= controller %>\index');
+	}
+};
+
+module.exports = <%= controller %>Controller;

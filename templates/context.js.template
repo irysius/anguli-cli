@@ -15,7 +15,7 @@ var context = {
 
 // Schema
 var SchemaService = require('@irysius/schema-service');
-var schemaService = SchemaService({ logger: Logger.consoleLogger() });
+var schemaService = SchemaService({ logger: Logger.console() });
 var schemas;
 
 function initializeSchema() {
@@ -42,7 +42,7 @@ var configuration;
 var FileConfigService = require('@irysius/file-config-service');
 var fileConfigService = FileConfigService({ 
 	rootFolder: __dirname, 
-	paths: ['config.json'] 
+	paths: ['config.json', '../config.json'] 
 });
 
 function initializeConfiguration() {
@@ -69,7 +69,7 @@ var Modeller = require('@irysius/anguli-components').Modeller;
 var Waterline = require('waterline');
 var modeller = new Modeller({ 
 	Waterline: Waterline,
-	logger: Logger.consoleLogger() 
+	logger: Logger.console() 
 });
 var models;
 

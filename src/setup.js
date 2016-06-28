@@ -33,9 +33,15 @@ var optionIdentity = {
 	message: 'Will your application need to track user identities?'
 };
 
+var questionSampleController = {
+	type: 'confirm',
+	name: 'samplecontroller',
+	message: 'Would you like to create a sample HomeController and its view?'
+};
+
 var setupComplete = 'anguli setup has completed installing project files. Please run npm install to finish installing external dependencies.';
 
-var dependencies = [
+var irysiusDependencies = [
 	{ package: '@irysius/utils', version: '0.1.x' },
 	{ package: '@irysius/anguli-components', version: '0.1.x' },
 	{ package: '@irysius/schema-service', version: '0.1.x' },
@@ -61,51 +67,42 @@ var baseDependencies = [
 	{ package: 'ejs', version: '2.4.1' }
 ];
 
+var dependencies = [];
+var folderAsserts = [];
+
+var t; // targetPathResolver
+
 function templateFile(filename) {
 	return PATH.resolve(__dirname, './../templates', filename);
 }
 
 function writeMain(context) {
-	var targetFile = PATH.resolve(context.cwd, 'src', 'main.js'); 
-	return fs.stat(targetFile).then(stat => {
-		if (!stat) {
-			return fs.copyFile(templateFile('main.js.ejs'), targetFile);
-		}
-	});	
+	var sourceFile = templateFile('main.js');
+	var targetFile = t.srcFile('main.js');
+	return h.templateCopier(sourceFile, targetFile);	
 }
 
 function writeServer(context) {
-	var targetFile = PATH.resolve(context.cwd, 'src', 'server.js');
-	return fs.stat(targetFile).then(stat => {
-		if (!stat) {
-			return fs.readFile(templateFile('server.js.ejs')).then(data => {
-				return fs.writeFile(targetFile, _.template(data)(context));
-			});
-		}
-	});
+	var sourceFile = templateFile('server.js.template');
+	var targetFile = t.srcFile('server.js');
+	return h.templateWriter(sourceFile, targetFile, context);
 }
 
 function writeContext(context) {
-	var targetFile = PATH.resolve(context.cwd, 'src', 'context.js');
-	return fs.stat(targetFile).then(stat => {
-		if (!stat) {
-			return fs.readFile(templateFile('context.js.ejs')).then(data => {
-				return fs.writeFile(targetFile, _.template(data)(context));
-			});
-		}
-	});
+	var sourceFile = templateFile('context.js.template');
+	var targetFile = t.srcFile('context.js');
+	return h.templateWriter(sourceFile, targetFile, context);
 }
 
-function writeConfig(context) {
-	var targetFile = PATH.resolve(context.cwd, 'config.json');
-	return fs.stat(targetFile).then(stat => {
-		if (!stat) {
-			return fs.copyFile(templateFile('config.json'), targetFile);
-		}
-	});
+function writeConfigSchema(context) {
+	var sourceFile = templateFile('config.json');
+	var targetFile = t.schemaFile('config.json');
+	return h.templateCopier(sourceFile, targetFile);
 }
 
 function setup(context) {
+	t = h.targetPathResolver(context.cwd);
+
 	// Begin main logic
 	return h.isNodeApplication(context.cwd).then(yes => {
 		if (!yes) { 
@@ -131,19 +128,44 @@ function setup(context) {
 				needsModel: models
 			};
 
-			if (hubs) { dependencies.push({ package: 'socket.io', version: '1.4.6' }); }
-			if (models) { dependencies.push({ package: 'waterline', version: '0.1.4' }); }
+			folderAsserts.push(fs.assertFolder(t.controllerFile()));
+			folderAsserts.push(fs.assertFolder(t.viewFile()));
+			folderAsserts.push(fs.assertFolder(t.schemaFile()));
+
+			if (hubs) { 
+				dependencies.push({ package: 'socket.io', version: '1.4.6' });
+				folderAsserts.push(fs.assertFolder(t.hubFile())); 
+			}
+			if (models) { 
+				dependencies.push({ package: 'waterline', version: '0.12.2' });
+				dependencies.push({ package: 'sails-disk', version: '0.10.10' });
+				folderAsserts.push(fs.assertFolder(t.modelFile())); 
+			}
 			var renderContext = _.merge(base, context);
 
-			return Promise.all([
-				writeMain(renderContext),
-				writeServer(renderContext),
-				writeContext(renderContext),
-				writeConfig(renderContext)
-			]);
+			return Promise.all(folderAsserts).then(() => {
+				return Promise.all([
+					writeMain(renderContext),
+					writeServer(renderContext),
+					writeContext(renderContext),
+					writeConfigSchema(renderContext)
+				]);
+			}).then(() => {
+				return inquirer.prompt([questionSampleController]).then(({ samplecontroller }) => {
+					var controllerTemplates = require('./controller')(context);
+					if (samplecontroller) {
+						return Promise.all([
+							controllerTemplates.writeSampleController(),
+							controllerTemplates.writeSampleView()
+						]);
+					}
+				});
+			});
 		}).then(() => {
+			console.log('asserting');
 			var packageJson = PATH.resolve(context.cwd, 'package.json');
-			dependency.assert(packageJson, baseDependencies);
+			dependency.assert(packageJson, 
+				_.concat(baseDependencies, utilityDependencies, irysiusDependencies, dependencies));
 		});
 	}).catch(e => { console.log(e.stack); console.log(e.message) });
 	
