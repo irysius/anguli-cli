@@ -1,6 +1,9 @@
+var { ErrorHandler, ControllerExtender } = require('@irysius/anguli-components');
+var errorHandler = ErrorHandler.controller;
+
 var <%= controller %>Controller = {
 	index: (req, res) => {
-		res.view('<%= controller %>\index');
+		res.render('<%= controller.toLowerCase() %>/index');
 	}
 };
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
+// Node 4.x's implementation of promises is lacking
+GLOBAL.Promise = require('bluebird');
+
 var command = (process.argv[2] || '').toLowerCase();
 var packageJson = require('./../package.json');
 var indent = '    ';
@@ -14,13 +17,13 @@ switch (command) {
 		require('./setup')(context);
 		break;
 	case 'controller':
-		require('./controller')(context);
+		require('./controller')(context).prompt();
 		break;
 	case 'hub':
 		require('./hub')(context);
 		break;
 	case 'model':
-		require('./model')(context);
+		require('./model')(context).prompt();
 		break;
 	case 'version':
 		version();

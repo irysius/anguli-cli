@@ -85,7 +85,13 @@ initializers.push(initializeModels);
 Object.defineProperty(context, 'Models', {
 	get: () => {
 		if (!models) { throw new Error('Models not initialized.'); }
-		return models;
+		return models.collections;
+	}
+});
+Object.defineProperty(context, 'ModelConnections', {
+	get: () => {
+		if (!models) { throw new Error('Models not initialized.'); }
+		return models.connections;
 	}
 });
 <% } %>

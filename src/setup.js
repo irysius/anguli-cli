@@ -4,6 +4,8 @@ var h = require('./helpers');
 var fs = require('@irysius/utils').fs;
 var PATH = require('path');
 var dependency = require('./dependency');
+var IgnoreError = require('@irysius/utils').IgnoreError;
+var stackFilter = require('@irysius/utils').Logger.stackFilter;
 
 var invalidDirectory = 'anguli setup is expected to run in the root of a node project. Please re-run the command in a directory with a package.json.';
 var existingInstallation = {
@@ -30,7 +32,16 @@ var optionSessions = {
 var optionIdentity = {
 	type: 'confirm',
 	name: 'identities',
-	message: 'Will your application need to track user identities?'
+	message: 'Will your application need to track user identities?',
+	when: ({sessions}) => {
+		return !!sessions;
+	}
+};
+
+var questionUserModel = {
+	type: 'confirm',
+	name: 'userModel',
+	message: 'Would you like to create a User model for use with identities?'
 };
 
 var questionSampleController = {
@@ -64,7 +75,19 @@ var baseDependencies = [
 	{ package: 'errorhandler', version: '1.4.3' },
 	{ package: 'method-override', version: '2.3.5' },
 	{ package: 'multer', version: '1.1.0' },
-	{ package: 'ejs', version: '2.4.1' }
+	{ package: 'ejs', version: '2.4.1' },
+	{ package: 'bluebird', version: '3.4.1' }
+];
+
+var devDependencies = [
+	{ package: 'babel-preset-es2015', version: '^6.6.0' },
+	{ package: 'grunt', version: '^0.4.5' },
+	{ package: 'grunt-babel', version: '^6.0.0' },
+	{ package: 'grunt-contrib-clean', version: '^1.0.0' },
+	{ package: 'grunt-contrib-copy', version: '^1.0.0' },
+	{ package: 'grunt-contrib-watch', version: '^0.6.1' },
+	{ package: 'mocha', version: '^2.4.5' },
+	{ package: 'chai', version: '^3.5.0' }
 ];
 
 var dependencies = [];
@@ -107,13 +130,13 @@ function setup(context) {
 	return h.isNodeApplication(context.cwd).then(yes => {
 		if (!yes) { 
 			console.error(invalidDirectory);
-			throw new Error(); 
+			throw new IgnoreError(); 
 		}
 		return h.hasExistingInstall(context.cwd);
 	}).then(yes => {
 		if (yes) { 
 			return inquirer.prompt([existingInstallation]).then(({ proceed }) => {
-				if (!proceed) { throw new Error(); }
+				if (!proceed) { throw new IgnoreError(); }
 			});
 		}
 	}).then(() => {
@@ -122,10 +145,11 @@ function setup(context) {
 		return inquirer.prompt(options).then(({hubs, sessions, identities, models}) => {
 			// Do stuff
 			var base = {
-				needsHub: hubs,
-				needsSession: sessions,
-				needsIdentity: identities,
-				needsModel: models
+				needsHub: !!hubs,
+				needsSession: !!sessions,
+				needsIdentity: !!identities,
+				needsModel: !!models,
+				userModelIdentity: false
 			};
 
 			folderAsserts.push(fs.assertFolder(t.controllerFile()));
@@ -141,7 +165,33 @@ function setup(context) {
 				dependencies.push({ package: 'sails-disk', version: '0.10.10' });
 				folderAsserts.push(fs.assertFolder(t.modelFile())); 
 			}
+
+			if (identities) {
+				return fs.stat(t.modelFile('User.js')).then(stat => {
+					if (!stat) {
+						return inquirer.prompt([questionUserModel]).then(({ userModel }) => {
+							return userModel;
+						});
+					} else {
+						console.log('Automatically using User model for identity.');
+						return true;
+					}
+				}).then(userModel => {
+					var sourceFile = templateFile('User.js');
+					var targetFile = t.modelFile('User.js');
+					if (userModel) {
+						base.userModelIdentity = true;
+						return h.templateCopier(sourceFile, targetFile);
+					}
+				}).then(() => {
+					return base;
+				});
+			}
+
+			return base;
+		}).then(base => {
 			var renderContext = _.merge(base, context);
+			console.log(renderContext);
 
 			return Promise.all(folderAsserts).then(() => {
 				return Promise.all([
@@ -162,13 +212,20 @@ function setup(context) {
 				});
 			});
 		}).then(() => {
-			console.log('asserting');
 			var packageJson = PATH.resolve(context.cwd, 'package.json');
 			dependency.assert(packageJson, 
 				_.concat(baseDependencies, utilityDependencies, irysiusDependencies, dependencies));
+			dependency.assert(packageJson, devDependencies, true);
+			var sourceFile = templateFile('Gruntfile.js.file');
+			var targetFile = t.rootFile('Gruntfile.js');
+			return h.templateCopier(sourceFile, targetFile);
 		});
-	}).catch(e => { console.log(e.stack); console.log(e.message) });
-	
+	}).catch(e => { 
+		if (!e instanceof IgnoreError) {
+			console.log(e.message);
+			console.log(stackFilter(e.stack));
+		}
+	});
 }
 
 module.exports = setup;

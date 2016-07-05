@@ -1,8 +1,6 @@
 /* globals __dirname */
-if (typeof Promise === 'undefined') {
-	require('babel-polyfill');
-	console.info('Using babel-polyfill');
-}
+// Node 4.x's implementation of promises is lacking
+GLOBAL.Promise = require('bluebird');
 
 var context = require('./context');
 context.initialize().then(() => {

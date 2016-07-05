@@ -1,0 +1,16 @@
+var { RESTController, ErrorHandler, ControllerExtender } = require('@irysius/anguli-components');
+var <%= controller %> = require('./../../context').Models['<%= controller.toLowerCase() %>'];
+var errorHandler = ErrorHandler.controller;
+
+class <%= controller %>Controller extends RESTController {
+	constructor() {
+		super(<%= controller %>, '<%= controller %>', { softDeleteField: null });
+		this['/customaction'] = (req, res) => {
+			res.json({ message: '<%= controller.toLowerCase() %> custom action.' });
+		};
+	}
+}
+
+var controller = new <%= controller %>Controller();
+
+module.exports = controller;

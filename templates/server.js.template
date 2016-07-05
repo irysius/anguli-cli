@@ -6,6 +6,9 @@ var express = require('express');
 var context = require('./context');
 var config = context.Configuration;
 var Logger = require('@irysius/utils').Logger;
+<% if (userModelIdentity) { %>
+var User = context.Models['user'];
+<% } %>
 
 // Connect/Express middleware
 var body_parser = require('body-parser');
@@ -43,7 +46,7 @@ app.use(session);
 <% if (needsIdentity) { %>
 var IdentityFactory = require('@irysius/anguli-components').IdentityFactory;
 var identity = IdentityFactory.create({
-	userLocator: null // TODO: Implement me
+<%= userModelIdentity ? '	userLocator: id => { return User.findOne(id); }' : '	userLocator: null // TODO: Implement me' %>
 });
 app.use(identity);
 <% } %>

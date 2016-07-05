@@ -56,6 +56,9 @@ function templateWriter(src, target, context, { override = false } = {}) {
 		return fs.stat(target).then(stat => {
 			if (!stat) {
 				return writeFile(src, target, context);
+			} else {
+				console.info('templateWriter');
+				console.info('Already exists: ' + target);
 			}
  		});
 	} else {
@@ -63,9 +66,9 @@ function templateWriter(src, target, context, { override = false } = {}) {
 	}
 
 	function writeFile(src, target, context) {
-		console.log('templateWriter');
-		console.log('> ' + src);
-		console.log('> ' + target);
+		console.info('templateWriter');
+		console.info('> ' + src);
+		console.info('> ' + target);
 		return fs.readFile(src, { encoding: 'utf8' }).then(data => {
 			return fs.assertFolder(PATH.dirname(target)).then(() => {
 				return fs.writeFile(target, _.template(data)(context));
@@ -78,6 +81,9 @@ function templateCopier(src, target, { override = false } = {}) {
 		return fs.stat(target).then(stat => {
 			if (!stat) {
 				return copyFile(src, target);
+			} else {
+				console.info('templateCopier');
+				console.info('Already exists: ' + target);
 			}
  		});
 	} else {
@@ -85,9 +91,9 @@ function templateCopier(src, target, { override = false } = {}) {
 	}
 
 	function copyFile(src, target) {
-		console.log('templateCopier');
-		console.log('> ' + src);
-		console.log('> ' + target);
+		console.info('templateCopier');
+		console.info('> ' + src);
+		console.info('> ' + target);
 		return fs.assertFolder(PATH.dirname(target)).then(() => {
 			return fs.copyFile(src, target);
 		});

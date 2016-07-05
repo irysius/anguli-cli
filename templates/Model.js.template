@@ -1,0 +1,8 @@
+var <%= model %> = {
+	attributes: {
+		alpha: { type: 'string', required: true, defaultsTo: '' },
+		beta: { type: 'integer', required: true, defaultsTo: 0 }
+	}
+};
+
+module.exports = <%= model %>;
