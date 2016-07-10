@@ -38,7 +38,7 @@ function ModelTemplates(context) {
 				return writeModel({ model: modelName });
 			});
 		}).catch(e => {
-			if (!e instanceof IgnoreError) {
+			if (!(e instanceof IgnoreError)) {
 				console.log(e.message);
 				console.log(stackFilter(e.stack));
 			}

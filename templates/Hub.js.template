@@ -1,0 +1,43 @@
+var _ = require('lodash');
+var once = require('once');
+var { Hub, ErrorHandler } = require('@irysius/anguli-components');
+var errorHandler = ErrorHandler.socket;
+
+var <%= hub %>Hub = Hub({
+	connect: (socket) => {
+		// handle any initialization logic needed when a socket connection is made
+		var request = socket.request;
+	},
+	send: {
+		hello: function () {
+			// `this` will be bound to the root object.
+			// this function must not use fat arrow syntax because of `this`.
+			// the root object will also have socket attached to it.
+			this.socket.emit('message', { message: 'hello' });
+		},
+		specific_hello: function (id) {
+			this.socket.to(id).emit('doodad', { message: 'specific hello'});
+		}
+	},
+	receive: {
+		// using signature (data, done) => void means you must call done.
+		message: function (data, done) {
+			var done = once(done);
+			console.log('receive message', data);
+			// `this` will be bound to the root object.
+			// this function must not use fat arrow syntax because of `this`.
+			// it allows you access to this.send's functions
+			this.send.hello();
+		},
+		// alternatively you may use (data) => void if client doesn't need confirmation of receipt.
+		'event.specific': function (data) {
+			console.log('receive event.specific');
+			this.send.specific_hello(123);
+		}
+	},
+	disconnect: (socket) => {
+		// handle any cleanup logic needed when a socket connection is lost
+	}
+}, '<%= hub %>Hub');
+
+module.exports = <%= hub %>Hub;

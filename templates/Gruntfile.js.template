@@ -7,11 +7,14 @@ module.exports = function (grunt) {
 			},
 			dist: {
 				files: [
+					{ src: 'src/context.js', dest: 'dist/context.js' },
+					{ src: 'src/main.js', dest: 'dist/main.js' },
+					{ src: 'src/server.js', dest: 'dist/server.js' },
 					{
 						expand: true,
-						cwd: 'src/',
+						cwd: 'src/api',
 						src: ['**/*.js'],
-						dest: 'dist/',
+						dest: 'dist/api',
 						ext: '.js'
 					}
 				]
@@ -21,6 +24,9 @@ module.exports = function (grunt) {
 			dist: ['dist/']	
 		},
 		'copy': {
+			bower: {
+				files: <%= bowerCopies %>
+			},
 			dist: {
 				files: [
 					{
@@ -55,5 +61,5 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default', ['babel', 'copy']);
+	grunt.registerTask('default', ['babel', 'copy:bower', 'copy:dist']);
 }

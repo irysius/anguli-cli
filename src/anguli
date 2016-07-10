@@ -20,7 +20,7 @@ switch (command) {
 		require('./controller')(context).prompt();
 		break;
 	case 'hub':
-		require('./hub')(context);
+		require('./hub')(context).prompt();
 		break;
 	case 'model':
 		require('./model')(context).prompt();

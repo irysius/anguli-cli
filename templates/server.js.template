@@ -79,7 +79,7 @@ var hubRouter = HubRouter({
 	io: io, 
 	logger: Logger.console() 
 });
-hubRouter.setup(__dirname + '/api');s
+hubRouter.setup(__dirname + '/api');
 <% } %>
 <% if (needsHub && needsSession) { %>
 io.use((socket, next) => {

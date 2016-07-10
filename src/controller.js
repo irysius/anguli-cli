@@ -6,6 +6,7 @@ var stackFilter = require('@irysius/utils').Logger.stackFilter;
 var fs = require('@irysius/utils').fs;
 
 var invalidDirectory = 'anguli controller is expected to run in the root of a node program that is setup with anguli.';
+var invalidControllerName = 'Controller name must be alphanumeric, with no spaces, where the first character cannot be a number.';
 var questionControllerName = {
 	type: 'input',
 	name: 'controllerName',
@@ -47,26 +48,26 @@ function ControllerTemplates(context) {
 		}).then(() => {
 			return inquirer.prompt([questionControllerName]).then(({ controllerName }) => {
 				if (!controllerNameRegex.exec(controllerName)) {
-					console.error('Controller name must be alphanumeric, with no spaces, where the first character cannot be a number.');
+					console.error(invalidControllerName);
 					throw new IgnoreError();
 				}
 				return controllerName[0].toUpperCase() + controllerName.substring(1);
-			}).then((controllerName) => {
-				return inquirer.prompt([questionControllerType]).then(({ controllerType }) => {
-					switch (controllerType) {
-						case CONTROLLER_REST:
-							return writeRestController({ controller: controllerName });
-						case CONTROLLER_BASIC:
-						default:
-							return Promise.all([
-								writeController({ controller: controllerName }),
-								writeView({ controller: controllerName, action: 'index' })
-							]);
-					}
-				});
+			});
+		}).then(controllerName => {
+			return inquirer.prompt([questionControllerType]).then(({ controllerType }) => {
+				switch (controllerType) {
+					case CONTROLLER_REST:
+						return writeRestController({ controller: controllerName });
+					case CONTROLLER_BASIC:
+					default:
+						return Promise.all([
+							writeController({ controller: controllerName }),
+							writeView({ controller: controllerName, action: 'index' })
+						]);
+				}
 			});
 		}).catch(e => {
-			if (!e instanceof IgnoreError) {
+			if (!(e instanceof IgnoreError)) {
 				console.log(e.message);
 				console.log(stackFilter(e.stack));
 			}

@@ -7,6 +7,11 @@ function isNodeApplication(cwd) {
 		return !!stat;
 	});
 }
+function hasBowerJson(cwd) {
+	return fs.stat(PATH.resolve(cwd, 'bower.json')).then(stat => {
+		return !!stat;
+	});
+}
 function hasExistingInstall(cwd) {
 	// The only files we're checking as proof of installation
 	var telltaleFiles = ['main.js', 'server.js', 'context.js'];
@@ -45,6 +50,7 @@ function targetPathResolver(root) {
 		srcFile: srcFile,
 		rootFile: rootFile,
 		controllerFile: controllerFile,
+		hubFile: hubFile,
 		modelFile: modelFile,
 		viewFile: viewFile,
 		schemaFile: schemaFile
@@ -102,6 +108,7 @@ function templateCopier(src, target, { override = false } = {}) {
 
 module.exports = {
 	isNodeApplication: isNodeApplication,
+	hasBowerJson: hasBowerJson,
 	hasExistingInstall: hasExistingInstall,
 	targetPathResolver: targetPathResolver,
 	templateWriter: templateWriter,
