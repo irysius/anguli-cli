@@ -3,7 +3,7 @@ module.exports = function (grunt) {
 		'babel': {
 			options: {
 				sourceMap: false,
-				presets: ['es2015']
+				presets: ['es2015', 'react']
 			},
 			dist: {
 				files: [
@@ -16,9 +16,16 @@ module.exports = function (grunt) {
 						src: ['**/*.js'],
 						dest: 'dist/api',
 						ext: '.js'
+					},
+					{
+						expand: true,
+						cwd: 'src/api/components',
+						src: ['**/*.jsx'],
+						dest: 'dist/api/components',
+						ext: '.js'
 					}
 				]
-			}
+			},
 		},
 		'clean': {
 			dist: ['dist/']	
@@ -47,6 +54,17 @@ module.exports = function (grunt) {
 						dest: 'dist/static',
 					}
 				]
+			},
+			components: {
+				files: [
+					{
+						expand: true,
+						cwd: 'dist/api/components',
+						src: ['**/*.js'],
+						dest: 'dist/static/components',
+						ext: '.js'
+					}
+				]
 			}
 		},
 		'watch': {
@@ -61,5 +79,5 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-watch');
-	grunt.registerTask('default', ['babel', 'copy:bower', 'copy:dist']);
+	grunt.registerTask('default', ['babel', 'copy:bower', 'copy:components', 'copy:dist']);
 }

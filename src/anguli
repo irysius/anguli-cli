@@ -25,6 +25,9 @@ switch (command) {
 	case 'model':
 		require('./model')(context).prompt();
 		break;
+	case 'component':
+		require('./component')(context).prompt();
+		break;
 	case 'version':
 		version();
 		break;
@@ -45,6 +48,7 @@ function help() {
 	console.log(indent + 'anguli controller');
 	console.log(indent + 'anguli hub');
 	console.log(indent + 'anguli model');
+	console.log(indent + 'anguli component');
 	console.log(indent + 'anguli version');
 	console.log(indent + 'anguli help');
 }

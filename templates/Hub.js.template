@@ -1,43 +1,61 @@
 var _ = require('lodash');
 var once = require('once');
-var { Hub, ErrorHandler } = require('@irysius/anguli-components');
+var { ErrorHandler } = require('@irysius/anguli-components');
 var errorHandler = ErrorHandler.socket;
 
-var <%= hub %>Hub = Hub({
+var <%= hub %>Hub = {
 	connect: (socket) => {
 		// handle any initialization logic needed when a socket connection is made
 		var request = socket.request;
+		console.log(`socket connected with id: ${socket.id}`);
 	},
+	/*
+		All functions on the send object will have the root object mapped to `this`.
+		In addition, you will have access to this.socket, and this.io.
+		this.socket represents the current socket context, and will be null if called from the server side.
+		this.io represents the io namespace this hub was created under, and will always be available.
+		No functions on the send object can use the fat arrow syntax (=>) as a result of a dependence on `this`. 
+	 */
 	send: {
 		hello: function () {
-			// `this` will be bound to the root object.
-			// this function must not use fat arrow syntax because of `this`.
-			// the root object will also have socket attached to it.
-			this.socket.emit('message', { message: 'hello' });
+			// sends to all clients
+			this.io.emit('message', 'hello from io.emit');
+			// sends to all sockets except the current one
+			this.socket.broadcast.emit('message', 'hello from socket.broadcast.emit');
+			// only sends to the current socket
+			this.socket.emit('message', 'hello from socket.emit');
 		},
-		specific_hello: function (id) {
-			this.socket.to(id).emit('doodad', { message: 'specific hello'});
+		whisper: function (id, data) {
+			// wil send message to the specific socket, except the current one
+			data = data || 'default whisper';
+			this.socket.to(id).emit('whisper', data);
 		}
 	},
+	/*
+		All functions on the receive object will have the root object mapped to `this`.
+		In addition, you will have access to this.socket, and this.io.
+		this.socket represents the current socket context, and will be null if called from the server side.
+		this.io represents the io namespace this hub was created under, and will always be available.
+		No functions on the send object can use the fat arrow syntax (=>) as a result of a dependence on `this`.
+	*/
 	receive: {
 		// using signature (data, done) => void means you must call done.
 		message: function (data, done) {
 			var done = once(done);
 			console.log('receive message', data);
-			// `this` will be bound to the root object.
-			// this function must not use fat arrow syntax because of `this`.
-			// it allows you access to this.send's functions
 			this.send.hello();
+			done();
 		},
 		// alternatively you may use (data) => void if client doesn't need confirmation of receipt.
-		'event.specific': function (data) {
-			console.log('receive event.specific');
-			this.send.specific_hello(123);
+		'chat.whisper': function (data) {
+			console.log('receive chat.whisper');
+			this.send.whisper(data.target, data.message);
 		}
 	},
 	disconnect: (socket) => {
 		// handle any cleanup logic needed when a socket connection is lost
+		console.log(`socket disconnected with id: ${socket.id}`);
 	}
-}, '<%= hub %>Hub');
+};
 
 module.exports = <%= hub %>Hub;

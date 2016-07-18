@@ -1,0 +1,64 @@
+var _ = require('lodash');
+var once = require('once');
+var { ErrorHandler } = require('@irysius/anguli-components');
+var errorHandler = ErrorHandler.socket;
+var model = require('./../../context').Models['<%= model.toLowerCase() %>'];
+
+function notifyAll(nsp) {
+	if (socketCount(nsp) > 0) {
+		model.find().then(records => {
+			nsp.emit('changed', records);
+		});
+	}
+}
+function socketCount(nsp) {
+	return Object.keys(nsp.sockets).length;
+}
+
+var <%= model %>Hub = {
+	connect: (socket) => {
+	},
+	send: {
+		/*
+			created: notifies new additions to the collection
+			updated: notifies changes to collection only with the items that have changed
+			removed: notifies removals from the collection with the id
+			changed: notifies with the entire collection on any changed 
+		 */
+		created: function (item) {
+			// notifies new additions to the collection.
+			if (this.io) {
+				this.io.emit('created', item);
+				notifyAll(this.io);
+			}
+		},
+		updated: function (item) {
+			// notifies changes to an item in the collection.
+			if (this.io) {
+				this.io.emit('updated', item);
+				notifyAll(this.io);
+			}
+		},
+		removed: function (id) {
+			// notifies removals from the collection via id.
+			if (this.io) {
+				this.io.emit('removed', id);
+				notifyAll(this.io);
+			}
+		}
+	},
+	receive: { 
+		track: function ({ id }) {
+			// monitors activity on a specific id
+
+		},
+		untrack: function ({ id }) {
+			// stops monitoring for activity
+
+		}
+	},
+	disconnect: (socket) => {
+	}
+};
+
+module.exports = <%= model %>Hub;

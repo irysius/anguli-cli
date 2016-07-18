@@ -46,6 +46,9 @@ function targetPathResolver(root) {
 	function schemaFile(filename = '') {
 		return PATH.resolve(root, 'src', 'api', 'schemas', filename);
 	}
+	function componentFile(filename = '') {
+		return PATH.resolve(root, 'src', 'api', 'components', filename);
+	}
 	return {
 		srcFile: srcFile,
 		rootFile: rootFile,
@@ -53,7 +56,8 @@ function targetPathResolver(root) {
 		hubFile: hubFile,
 		modelFile: modelFile,
 		viewFile: viewFile,
-		schemaFile: schemaFile
+		schemaFile: schemaFile,
+		componentFile: componentFile
 	};
 }
 

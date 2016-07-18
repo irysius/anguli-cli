@@ -95,6 +95,7 @@ var baseDependencies = [
 
 var devDependencies = [
 	{ package: 'babel-preset-es2015', version: '^6.6.0' },
+	{ package: 'babel-preset-react', version: '^6.11.1' },
 	{ package: 'grunt', version: '^0.4.5' },
 	{ package: 'grunt-babel', version: '^6.0.0' },
 	{ package: 'grunt-contrib-clean', version: '^1.0.0' },

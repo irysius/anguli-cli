@@ -4,13 +4,13 @@ var inquirer = require('inquirer');
 var IgnoreError = require('@irysius/utils').IgnoreError;
 var stackFilter = require('@irysius/utils').Logger.stackFilter;
 
-var invalidDirectory = 'anguli hub is expected to run in the root of a node program that is setup with anguli.';
-var invalidName = 'Hub name must be alphanumeric, with no spaces, where the first character cannot be a number.';
+var invalidDirectory = 'anguli component is expected to run in the root of a node program that is setup with anguli.';
+var invalidName = 'Component name must be alphanumeric, with no spaces, where the first character cannot be a number.';
 
 var questionName = {
 	type: 'input',
 	name: 'name',
-	message: 'What is the name of your hub?'
+	message: 'What is the name of your react component?'
 };
 var nameRegex = /^[a-zA-Z][a-zA-Z0-9]*$/;
 
@@ -18,7 +18,7 @@ function templateFile(filename) {
 	return PATH.resolve(__dirname, './../templates', filename);
 }
 
-function HubTemplates(context) {
+function ComponentTemplates(context) {
 	var t = h.targetPathResolver(context.cwd);
 	function prompt() {
 		return Promise.all([
@@ -38,7 +38,7 @@ function HubTemplates(context) {
 				return name[0].toUpperCase() + name.substring(1);
 			});
 		}).then(name => {
-			return writeHub({ hub: name });
+			return writeComponent({ component: name });	
 		}).catch(e => {
 			if (!(e instanceof IgnoreError)) {
 				console.log(e.message);
@@ -46,17 +46,17 @@ function HubTemplates(context) {
 			}
 		});
 	}
-	
-	function writeHub(context) {
-		var sourceFile = templateFile('Hub.js.template');
-		var targetFile = t.hubFile(`${context.hub}Hub.js`)
+
+	function writeComponent(context) {
+		var sourceFile = templateFile('Component.js.template');
+		var targetFile = t.componentFile(`${context.component}.jsx`)
 		return h.templateWriter(sourceFile, targetFile, context);
 	}
 
 	return {
 		prompt: prompt,
-		witeHub: writeHub
+		writeComponent: writeComponent
 	};
 }
 
-module.exports = HubTemplates;
+module.exports = ComponentTemplates;

@@ -1,0 +1,36 @@
+(function (definition) {
+	if (typeof module === 'object' && typeof module.exports === 'object') {
+		var React = require('react');
+		var _ = require('lodash');
+		var axios = require('axios');
+		module.exports = definition(React, _, axios);
+	} else {
+		var x = definition(window.React, window._, window.axios);
+		window.<%= component %> = x.<%= component %>;
+	}
+})(function (React, _, axios) {
+
+	class <%= component %> extends React.Component {
+		constructor(props) {
+			super(props);
+			this.state = {};
+		}
+
+		render() {
+			return (
+				<div>
+					<p>This is a component.</p>
+				</div>
+			);
+		}
+	}
+
+	<%= component %>.propTypes = {
+		name: React.PropTypes.string.isRequired,
+
+	};
+
+	return {
+		<%= component %>: <%= component %>
+	};
+});
