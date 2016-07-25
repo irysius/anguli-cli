@@ -1,6 +1,6 @@
 {
   "name": "@irysius/anguli-cli",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Command line interface for the anguli framework",
   "bin": {
     "anguli": "build/anguli"
@@ -21,11 +21,13 @@
   "license": "MIT",
   "dependencies": {
     "@irysius/utils": "0.1.x",
+    "archiver": "^1.0.0",
+    "bluebird": "3.4.1",
     "connect-redis": "3.0.2",
     "express-session": "1.13.0",
     "inquirer": "^1.0.2",
     "lodash": "4.12.0",
-    "bluebird": "3.4.1"
+    "tar.gz": "^1.0.5"
   },
   "devDependencies": {
     "babel-polyfill": "^6.6.1",

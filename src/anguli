@@ -31,6 +31,12 @@ switch (command) {
 	case 'version':
 		version();
 		break;
+	case 'tar':
+		require('./archive')(context).tar(process.argv[3]);
+		break;
+	case 'untar':
+		require('./archive')(context).untar(process.argv[3]);
+		break;
 	case 'help':
 	default:
 		help();

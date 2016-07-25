@@ -63,6 +63,12 @@ var questionIncludeBootstrap = {
 	message: 'Would you like to use Bootstrap (for styles or components) in this project? (will install jQuery)'
 };
 
+var questionCopyNodeModules = {
+	type: 'confirm',
+	name: 'copynodemodules',
+	message: 'The following node modules (babel-preset-es2015, babel-preset-react, grunt-babel) are large and may impact the initial npm install, would you like to copy these from cache instead?'
+}
+
 var setupComplete = 'anguli setup has completed installing project files. Please run npm install to finish installing external dependencies.';
 
 var irysiusDependencies = [
@@ -94,13 +100,13 @@ var baseDependencies = [
 ];
 
 var devDependencies = [
-	{ package: 'babel-preset-es2015', version: '^6.6.0' },
+	{ package: 'babel-preset-es2015', version: '^6.9.0' },
 	{ package: 'babel-preset-react', version: '^6.11.1' },
-	{ package: 'grunt', version: '^0.4.5' },
+	{ package: 'grunt', version: '^1.0.1' },
 	{ package: 'grunt-babel', version: '^6.0.0' },
 	{ package: 'grunt-contrib-clean', version: '^1.0.0' },
 	{ package: 'grunt-contrib-copy', version: '^1.0.0' },
-	{ package: 'grunt-contrib-watch', version: '^0.6.1' },
+	{ package: 'grunt-contrib-watch', version: '^1.0.0' },
 	{ package: 'mocha', version: '^2.4.5' },
 	{ package: 'chai', version: '^3.5.0' }
 ];
@@ -304,6 +310,7 @@ function setup(context) {
 	}).then(() => {
 		// Update package.json, bower.json, and Gruntfile.js
 		var packageJson = PATH.resolve(context.cwd, 'package.json');
+		console.log('Making sure necessary dependencies exist in package.json');
 		dependency.assert(packageJson, 
 			_.concat(baseDependencies, utilityDependencies, irysiusDependencies, dependencies)).then(() => {
 				return dependency.assert(packageJson, devDependencies, true);
@@ -318,6 +325,33 @@ function setup(context) {
 		var a = _.flatMap(masterClientDependencies, cd => cd.copy);
 		var bowerCopies = JSON.stringify(a);
 		return h.templateWriter(sourceFile, targetFile, { bowerCopies: bowerCopies });
+	}).then(() => {
+		// Offer to unpack heavier dependencies
+		return fs.stat(t.rootFile('node_modules')).then(stat => {
+			if (!stat) {
+				return prompt([questionCopyNodeModules]).then(({ copynodemodules }) => {
+					return copynodemodules;
+				});
+			} else {
+				return false;
+			}
+		}).then(copynodemodules => {
+			if (copynodemodules) {
+				var node_modules = t.root('node_modules');
+				return fs.assertFolder(node_modules).then(() => {
+					var archive = require('./archive')({ cwd: templateFile() });
+					console.log('Extracting cached node modules. This may take a few minutes.');
+					return Promise.all([
+						archive.untar('babel-preset-es2015.tar.gz', node_modules),
+						archive.untar('babel-preset-react.tar.gz', node_modules),
+						archive.untar('grunt-babel', node_modules)
+					]).then(() => {
+						console.log('Finished extracting node modules.');
+					});
+				});
+				
+			}
+		});
 	}).catch(e => { 
 		if (!(e instanceof IgnoreError)) {
 			console.log(e.message);
