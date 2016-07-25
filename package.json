@@ -1,8 +1,10 @@
 {
   "name": "@irysius/anguli-cli",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Command line interface for the anguli framework",
-  "main": "build/anguli",
+  "bin": {
+    "anguli": "build/anguli"
+  },
   "scripts": {
     "test": "grunt && mocha test/test",
     "prepublish": "grunt publish"

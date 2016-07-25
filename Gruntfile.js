@@ -26,12 +26,15 @@ module.exports = function (grunt) {
 		},
 		'copy': {
 			publish: {
-				files: [{
-					expand: true,
-					cwd: 'dist/',
-					src: ['**/*.*'],
-					dest: 'build/'	
-				}]
+				files: [
+					{
+						expand: true,
+						cwd: 'dist/',
+						src: ['**/*.*'],
+						dest: 'build/'	
+					},
+					{ src: 'dist/anguli', dest: 'build/anguli' }
+				]
 			}
 		},
 		'watch': {
