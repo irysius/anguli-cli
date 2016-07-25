@@ -305,9 +305,10 @@ function setup(context) {
 		// Update package.json, bower.json, and Gruntfile.js
 		var packageJson = PATH.resolve(context.cwd, 'package.json');
 		dependency.assert(packageJson, 
-			_.concat(baseDependencies, utilityDependencies, irysiusDependencies, dependencies));
-		dependency.assert(packageJson, devDependencies, true);
-
+			_.concat(baseDependencies, utilityDependencies, irysiusDependencies, dependencies)).then(() => {
+				return dependency.assert(packageJson, devDependencies, true);
+			});
+		
 		var bowerJson = PATH.resolve(context.cwd, 'bower.json');
 		var masterClientDependencies = _.concat(bowerDependencies, clientDependencies); 
 		dependency.assert(bowerJson, masterClientDependencies);
@@ -315,9 +316,7 @@ function setup(context) {
 		var sourceFile = templateFile('Gruntfile.js.template');
 		var targetFile = t.rootFile('Gruntfile.js');
 		var a = _.flatMap(masterClientDependencies, cd => cd.copy);
-		console.log(a);
 		var bowerCopies = JSON.stringify(a);
-		console.log(bowerCopies);
 		return h.templateWriter(sourceFile, targetFile, { bowerCopies: bowerCopies });
 	}).catch(e => { 
 		if (!(e instanceof IgnoreError)) {

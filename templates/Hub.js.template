@@ -7,7 +7,7 @@ var <%= hub %>Hub = {
 	connect: (socket) => {
 		// handle any initialization logic needed when a socket connection is made
 		var request = socket.request;
-		console.log(`socket connected with id: ${socket.id}`);
+		console.log('socket connected with id: ' + socket.id);
 	},
 	/*
 		All functions on the send object will have the root object mapped to `this`.
@@ -54,7 +54,7 @@ var <%= hub %>Hub = {
 	},
 	disconnect: (socket) => {
 		// handle any cleanup logic needed when a socket connection is lost
-		console.log(`socket disconnected with id: ${socket.id}`);
+		console.log('socket disconnected with id: ' + socket.id);
 	}
 };
 
